@@ -2,10 +2,24 @@ const Story = require('../models/story');
 
 exports.addStory = async (req, res) => {
     const { slides } = req.body;
+    
     if (slides.length < 3 || slides.length > 6) {
         return res.status(400).json({ message: 'Stories must have between 3 and 6 slides' });
     }
-    const story = await Story.create({ user: req.user._id, slides });
+
+    // Ensure that each slide has content
+    const validSlides = slides.every(slide => slide.content && slide.type);
+    if (!validSlides) {
+        return res.status(400).json({ message: 'Each slide must have a content URL and type' });
+    }
+
+    const lastSlideCategory = slides[slides.length - 1].category; // Get category from the last slide
+    const story = await Story.create({
+        user: req.user._id,
+        slides,
+        category: lastSlideCategory
+    });
+
     res.status(201).json(story);
 };
 
@@ -93,7 +107,7 @@ exports.bookmarkStory = async (req, res) => {
 
 exports.getStoriesByCategory = async (req, res) => {
     const { category } = req.params;
-    const stories = await Story.find({ 'slides.category': category });
+    const stories = await Story.find({ category });
     res.status(200).json(stories);
 };
 
