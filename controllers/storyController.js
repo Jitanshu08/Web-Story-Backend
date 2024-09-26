@@ -7,17 +7,17 @@ exports.addStory = async (req, res) => {
         return res.status(400).json({ message: 'Stories must have between 3 and 6 slides' });
     }
 
-    // Ensure that each slide has content
-    const validSlides = slides.every(slide => slide.content && slide.type);
+    // Ensure each slide has content, type, and description
+    const validSlides = slides.every(slide => slide.content && slide.type && slide.description);
     if (!validSlides) {
-        return res.status(400).json({ message: 'Each slide must have a content URL and type' });
+        return res.status(400).json({ message: 'Each slide must have a content URL, type, and description' });
     }
 
-    const lastSlideCategory = slides[slides.length - 1].category; // Get category from the last slide
+    const lastSlideCategory = slides[slides.length - 1].category;
     const story = await Story.create({
         user: req.user._id,
         slides,
-        category: lastSlideCategory
+        category: lastSlideCategory,
     });
 
     res.status(201).json(story);
@@ -38,7 +38,7 @@ exports.editStory = async (req, res) => {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        story.slides = slides;
+        story.slides = slides; // Update the slides, including the description
         await story.save();
         res.status(200).json(story);
     } catch (error) {
@@ -162,3 +162,15 @@ exports.getUserStories = async (req, res) => {
     }
 };
 
+exports.getStoriesByID = async(req, res) => {
+    const { id } = req.params;
+    try {
+        const story = await Story.findById(id);
+        if (!story) {
+            return res.status(404).json({ message: 'Story not found' });
+        }
+        res.status(200).json(story);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};

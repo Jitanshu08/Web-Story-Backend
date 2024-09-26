@@ -8,7 +8,7 @@ const {
   getStoriesByCategory,
   getUserStories,
   getBookmarkedStories,
-  shareStory,
+  shareStory, getStoriesByID
 } = require("../controllers/storyController");
 const auth = require("../middleware/auth");
 const router = express.Router();
@@ -23,5 +23,6 @@ router.get("/download/:id", downloadStory); // Define this route
 router.get("/category/:category", getStoriesByCategory);
 // router.get("/userstories", auth, getUserStories);
 router.get('/mystories', auth, getUserStories); // Protect this route using the auth middleware
+router.get("/stories/:id",auth, getStoriesByID);
 
 module.exports = router;
