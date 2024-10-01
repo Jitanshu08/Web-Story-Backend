@@ -13,12 +13,10 @@ exports.addStory = async (req, res) => {
     (slide) => slide.heading && slide.content && slide.type && slide.description
   );
   if (!validSlides) {
-    return res
-      .status(400)
-      .json({
-        message:
-          "Each slide must have a heading, content URL, type, and description",
-      });
+    return res.status(400).json({
+      message:
+        "Each slide must have a heading, content URL, type, and description",
+    });
   }
 
   const lastSlideCategory = slides[slides.length - 1].category;
@@ -112,15 +110,19 @@ exports.getStoriesByCategory = async (req, res) => {
 };
 
 exports.downloadStory = async (req, res) => {
-  const { id } = req.params;
+  const { id, slideId } = req.params; // Accept story ID and slide ID
   try {
     const story = await Story.findById(id);
     if (!story) {
       return res.status(404).json({ message: "Story not found" });
     }
 
-    const slideURLs = story.slides.map((slide) => slide.content); // Assuming slide.content stores the URL of the image/video
-    res.status(200).json({ slides: slideURLs });
+    const slide = story.slides.id(slideId);
+    if (!slide) {
+      return res.status(404).json({ message: "Slide not found" });
+    }
+
+    res.status(200).json({ slideURL: slide.content });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
   }
@@ -128,11 +130,19 @@ exports.downloadStory = async (req, res) => {
 
 exports.shareStory = async (req, res) => {
   const { id } = req.params;
-  const story = await Story.findById(id);
-  if (!story) return res.status(404).json({ message: "Story not found" });
+  try {
+    const story = await Story.findById(id);
+    if (!story) {
+      return res.status(404).json({ message: "Story not found" });
+    }
+    const frontendURL = process.env.FRONTEND_URL || "http://localhost:3000";
 
-  const shareableLink = `${process.env.FRONTEND_URL}/stories/${story._id}`;
-  res.status(200).json({ message: "Link copied", link: shareableLink });
+    const shareableLink = `${frontendURL}/stories/${story._id}`;
+
+    res.status(200).json({ message: "Link copied", link: shareableLink });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
 };
 
 exports.getBookmarkedStories = async (req, res) => {
