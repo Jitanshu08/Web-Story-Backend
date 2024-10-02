@@ -24,7 +24,7 @@ app.use(express.json());
 // Enable CORS with dynamic origin (handle both local and production)
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "*", // Update to match your frontend URL when deployed
+    origin: ["https://web-story-frontend-seven.vercel.app", "*"],// Update to match your frontend URL when deployed
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   })
